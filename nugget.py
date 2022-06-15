@@ -1,4 +1,5 @@
 import requests, hashlib, json, time, ovh
+from random import randint
 
 with open('config.json') as f:
     config = json.load(f)
@@ -28,90 +29,112 @@ else:
     print(json.dumps(response.json(), indent=4))
     exit()
 timeDelta = int(response.text) - int(time.time())
-# creating a new cart
-cart = client.post("/order/cart", ovhSubsidiary="CA", _need_auth=False)
-#assign new cart to current user
-client.post("/order/cart/{0}/assign".format(cart.get("cartId")))
-#put ks1 into cart
-#result = client.post(f'/order/cart/{cart.get("cartId")}/eco',{"duration":"P1M","planCode":"22sk010","pricingMode":"default","quantity":1})
-#apparently this shit sends malformed json whatever baguette
-payload={'duration':'P1M','planCode':'22sk010','pricingMode':'default','quantity':1}
-response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/eco', headers=headers, data=json.dumps(payload))
-#getting current cart
-response = requests.get(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}')
-if response.status_code != 200:
-    print(response.status_code)
-    print(json.dumps(response.json(), indent=4))
-    exit()
-#modify item for checkout
-itemID = response.json()['items'][0]
-print(f'Getting current cart {cart.get("cartId")}')
-#set region
-payload={'label':'region','value':'europe'}
-response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/item/{itemID}/configuration', headers=headers, data=json.dumps(payload))
-if response.status_code == 200:
-    print("Set Region")
-else:
-    print(response.status_code)
-    print(json.dumps(response.json(), indent=4))
-    exit()
-#set datacenter
-payload={'label':'dedicated_datacenter','value':'fr'}
-response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/item/{itemID}/configuration', headers=headers, data=json.dumps(payload))
-if response.status_code == 200:
-    print("Set Datacenter")
-else:
-    print(response.status_code)
-    print(json.dumps(response.json(), indent=4))
-    exit()
-#set os
-payload={'label':'dedicated_os','value':'none_64.en'}
-response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/item/{itemID}/configuration', headers=headers, data=json.dumps(payload))
-if response.status_code == 200:
-    print("Set OS")
-else:
-    print(response.status_code)
-    print(json.dumps(response.json(), indent=4))
-    exit()
-#set bandwidth
-payload={'itemId':itemID,'duration':'P1M','planCode':'bandwidth-100-included-ks','pricingMode':'default','quantity':1}
-response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/eco/options', headers=headers, data=json.dumps(payload))
-if response.status_code == 200:
-    print("Set Bandwidth")
-else:
-    print(response.status_code)
-    print(json.dumps(response.json(), indent=4))
-    exit()
-#set disk
-payload={'itemId':itemID,'duration':'P1M','planCode':'noraid-1x1000sa-sk010','pricingMode':'default','quantity':1}
-response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/eco/options', headers=headers, data=json.dumps(payload))
-if response.status_code == 200:
-    print("Set Disk")
-else:
-    print(response.status_code)
-    print(json.dumps(response.json(), indent=4))
-    exit()
-#set memory
-payload={'itemId':itemID,'duration':'P1M','planCode':'ram-4g-sk010','pricingMode':'default','quantity':1}
-response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/eco/options', headers=headers, data=json.dumps(payload))
-if response.status_code == 200:
-    print("Set Memory")
-else:
-    print(response.status_code)
-    print(json.dumps(response.json(), indent=4))
-    exit()
-print("Package ready, waiting for stock")
-#wait for stock
-#todo
-#lets checkout boooyaaa
-payload={'autoPayWithPreferredPaymentMethod':False,'waiveRetractationPeriod':False}
-#prepare sig
-target = f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/checkout'
-now = str(int(time.time()) + timeDelta)
-signature = hashlib.sha1()
-signature.update("+".join([config['application_secret'], config['consumer_key'],'POST', target, json.dumps(payload), now]).encode('utf-8'))
-headers['X-Ovh-Signature'] = "$1$" + signature.hexdigest()
-headers['X-Ovh-Timestamp'] = now
-response = requests.post(target, headers=headers, data=json.dumps(payload))
-print(response.status_code)
-print(json.dumps(response.json(), indent=4))
+#run for 8 days
+for day in range(4):
+    print(f'Day {day}')
+    # creating a new cart
+    cart = client.post("/order/cart", ovhSubsidiary="CA", _need_auth=False)
+    #assign new cart to current user
+    client.post("/order/cart/{0}/assign".format(cart.get("cartId")))
+    #put ks1 into cart
+    #result = client.post(f'/order/cart/{cart.get("cartId")}/eco',{"duration":"P1M","planCode":"22sk010","pricingMode":"default","quantity":1})
+    #apparently this shit sends malformed json whatever baguette
+    payload={'duration':'P1M','planCode':'22sk010','pricingMode':'default','quantity':1}
+    response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/eco', headers=headers, data=json.dumps(payload))
+    #getting current cart
+    response = requests.get(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}')
+    if response.status_code != 200:
+        print(response.status_code)
+        print(json.dumps(response.json(), indent=4))
+        exit()
+    #modify item for checkout
+    itemID = response.json()['items'][0]
+    print(f'Getting current cart {cart.get("cartId")}')
+    #set region
+    payload={'label':'region','value':'europe'}
+    response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/item/{itemID}/configuration', headers=headers, data=json.dumps(payload))
+    if response.status_code == 200:
+        print("Set Region")
+    else:
+        print(response.status_code)
+        print(json.dumps(response.json(), indent=4))
+        exit()
+    #set datacenter
+    payload={'label':'dedicated_datacenter','value':'fr'}
+    response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/item/{itemID}/configuration', headers=headers, data=json.dumps(payload))
+    if response.status_code == 200:
+        print("Set Datacenter")
+    else:
+        print(response.status_code)
+        print(json.dumps(response.json(), indent=4))
+        exit()
+    #set os
+    payload={'label':'dedicated_os','value':'none_64.en'}
+    response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/item/{itemID}/configuration', headers=headers, data=json.dumps(payload))
+    if response.status_code == 200:
+        print("Set OS")
+    else:
+        print(response.status_code)
+        print(json.dumps(response.json(), indent=4))
+        exit()
+    #set bandwidth
+    payload={'itemId':itemID,'duration':'P1M','planCode':'bandwidth-100-included-ks','pricingMode':'default','quantity':1}
+    response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/eco/options', headers=headers, data=json.dumps(payload))
+    if response.status_code == 200:
+        print("Set Bandwidth")
+    else:
+        print(response.status_code)
+        print(json.dumps(response.json(), indent=4))
+        exit()
+    #set disk
+    payload={'itemId':itemID,'duration':'P1M','planCode':'noraid-1x1000sa-sk010','pricingMode':'default','quantity':1}
+    response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/eco/options', headers=headers, data=json.dumps(payload))
+    if response.status_code == 200:
+        print("Set Disk")
+    else:
+        print(response.status_code)
+        print(json.dumps(response.json(), indent=4))
+        exit()
+    #set memory
+    payload={'itemId':itemID,'duration':'P1M','planCode':'ram-4g-sk010','pricingMode':'default','quantity':1}
+    response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/eco/options', headers=headers, data=json.dumps(payload))
+    if response.status_code == 200:
+        print("Set Memory")
+    else:
+        print(response.status_code)
+        print(json.dumps(response.json(), indent=4))
+        exit()
+    print("Package ready, waiting for stock")
+    #the order expires in about 3 days, we create a new one after 2 days
+    for check in range(17280):
+        print(f"Run {check+1}")
+        #wait for stock
+        response = requests.get('https://us.ovh.com/engine/apiv6/dedicated/server/datacenter/availabilities?excludeDatacenters=false&planCode=22sk010&server=22sk010')
+        if response.status_code == 200:
+            stock = response.json()
+            score = 0
+            for datacenter in stock[0]['datacenters']:
+                if datacenter['datacenter'] == "rbx":
+                    print(f'RBX {datacenter["availability"]}')
+                    if datacenter['availability'] != "unavailable": score+1
+                if datacenter['datacenter'] == "gra":
+                    print(f'GRA {datacenter["availability"]}')
+                    if datacenter['availability'] == "unavailable": score+1
+        else:
+            time.sleep(randint(5,10))
+            continue
+        #lets checkout boooyaaa
+        if score == 2:
+            payload={'autoPayWithPreferredPaymentMethod':False,'waiveRetractationPeriod':False}
+            #prepare sig
+            target = f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/checkout'
+            now = str(int(time.time()) + timeDelta)
+            signature = hashlib.sha1()
+            signature.update("+".join([config['application_secret'], config['consumer_key'],'POST', target, json.dumps(payload), now]).encode('utf-8'))
+            headers['X-Ovh-Signature'] = "$1$" + signature.hexdigest()
+            headers['X-Ovh-Timestamp'] = now
+            response = requests.post(target, headers=headers, data=json.dumps(payload))
+            print(response.status_code)
+            print(json.dumps(response.json(), indent=4))
+            exit("Done")
+        time.sleep(10)
