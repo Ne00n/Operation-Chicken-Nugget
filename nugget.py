@@ -50,60 +50,29 @@ for day in range(4):
     #modify item for checkout
     itemID = response.json()['items'][0]
     print(f'Getting current cart {cart.get("cartId")}')
-    #set region
-    payload={'label':'region','value':'europe'}
-    response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/item/{itemID}/configuration', headers=headers, data=json.dumps(payload))
-    if response.status_code == 200:
-        print("Set Region")
-    else:
-        print(response.status_code)
-        print(json.dumps(response.json(), indent=4))
-        exit()
-    #set datacenter
-    payload={'label':'dedicated_datacenter','value':'fr'}
-    response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/item/{itemID}/configuration', headers=headers, data=json.dumps(payload))
-    if response.status_code == 200:
-        print("Set Datacenter")
-    else:
-        print(response.status_code)
-        print(json.dumps(response.json(), indent=4))
-        exit()
-    #set os
-    payload={'label':'dedicated_os','value':'none_64.en'}
-    response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/item/{itemID}/configuration', headers=headers, data=json.dumps(payload))
-    if response.status_code == 200:
-        print("Set OS")
-    else:
-        print(response.status_code)
-        print(json.dumps(response.json(), indent=4))
-        exit()
-    #set bandwidth
-    payload={'itemId':itemID,'duration':'P1M','planCode':'bandwidth-100-included-ks','pricingMode':'default','quantity':1}
-    response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/eco/options', headers=headers, data=json.dumps(payload))
-    if response.status_code == 200:
-        print("Set Bandwidth")
-    else:
-        print(response.status_code)
-        print(json.dumps(response.json(), indent=4))
-        exit()
-    #set disk
-    payload={'itemId':itemID,'duration':'P1M','planCode':'noraid-1x1000sa-sk010','pricingMode':'default','quantity':1}
-    response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/eco/options', headers=headers, data=json.dumps(payload))
-    if response.status_code == 200:
-        print("Set Disk")
-    else:
-        print(response.status_code)
-        print(json.dumps(response.json(), indent=4))
-        exit()
-    #set memory
-    payload={'itemId':itemID,'duration':'P1M','planCode':'ram-4g-sk010','pricingMode':'default','quantity':1}
-    response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/eco/options', headers=headers, data=json.dumps(payload))
-    if response.status_code == 200:
-        print("Set Memory")
-    else:
-        print(response.status_code)
-        print(json.dumps(response.json(), indent=4))
-        exit()
+    #set configurations
+    config = [{'label':'region','value':'europe'},{'label':'dedicated_datacenter','value':'fr'},{'label':'dedicated_os','value':'none_64.en'}]
+    for config in configurations:
+        response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/item/{itemID}/configuration', headers=headers, data=json.dumps(config))
+        if response.status_code == 200:
+            print(f"Setting {config}")
+        else:
+            print(response.status_code)
+            print(json.dumps(response.json(), indent=4))
+            exit()
+    #set options
+    options = [{'itemId':itemID,'duration':'P1M','planCode':'bandwidth-100-included-ks','pricingMode':'default','quantity':1},
+            {'itemId':itemID,'duration':'P1M','planCode':'noraid-1x1000sa-sk010','pricingMode':'default','quantity':1},
+            {'itemId':itemID,'duration':'P1M','planCode':'ram-4g-sk010','pricingMode':'default','quantity':1}
+    ]
+    for option in options:
+        response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/eco/options', headers=headers, data=json.dumps(option))
+        if response.status_code == 200:
+            print(f"Seting {option}")
+        else:
+            print(response.status_code)
+            print(json.dumps(response.json(), indent=4))
+            exit()
     print("Package ready, waiting for stock")
     #the order expires in about 3 days, we create a new one after 2 days
     for check in range(17280):
