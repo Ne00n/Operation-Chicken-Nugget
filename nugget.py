@@ -1,4 +1,4 @@
-import json, ovh
+import requests, json, ovh
 
 with open('config.json') as f:
     config = json.load(f)
@@ -14,3 +14,21 @@ client = ovh.Client(
 
 # Print nice welcome message
 print("Welcome", client.get('/me')['firstname'])
+
+endpoint,headers = "https://ca.api.ovh.com/",{'Content-Type': 'application/json'}
+# creating a new cart
+cart = client.post("/order/cart", ovhSubsidiary="CA", _need_auth=False)
+print(cart.get("cartId"))
+#assign new cart to current user
+client.post("/order/cart/{0}/assign".format(cart.get("cartId")))
+#put ks1 into cart
+#result = client.post(f'/order/cart/{cart.get("cartId")}/eco',{"duration":"P1M","planCode":"22sk010","pricingMode":"default","quantity":1})
+#apparently this shit sends malformed json whatever baguette
+payload={'duration':'P1M','planCode':'22sk010','pricingMode':'default','quantity':1}
+response = requests.post(f'{endpoint}1.0/order/cart/{cart.get("cartId")}/eco', headers=headers, data=json.dumps(payload))
+print(response.status_code)
+print(json.dumps(response.json(), indent=4))
+#getting current cart
+response = requests.get(f'{endpoint}1.0/order/cart/{cart.get("cartId")}')
+print(response.status_code)
+print(json.dumps(response.json(), indent=4))
