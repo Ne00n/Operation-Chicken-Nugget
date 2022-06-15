@@ -50,3 +50,19 @@ payload={'label':'dedicated_os','value':'none_64.en'}
 response = requests.post(f'{endpoint}1.0/order/cart/{cart.get("cartId")}/item/{itemID}/configuration', headers=headers, data=json.dumps(payload))
 print(response.status_code)
 print(json.dumps(response.json(), indent=4))
+#set bandwidth
+payload={'itemId':itemID,'duration':'P1M','planCode':'bandwidth-100-included-ks','pricingMode':'default','quantity':1}
+response = requests.post(f'{endpoint}1.0/order/cart/{cart.get("cartId")}/eco/options', headers=headers, data=json.dumps(payload))
+print(response.status_code)
+print(json.dumps(response.json(), indent=4))
+#set disk
+payload={'itemId':itemID,'duration':'P1M','planCode':'noraid-1x1000sa-sk010','pricingMode':'default','quantity':1}
+response = requests.post(f'{endpoint}1.0/order/cart/{cart.get("cartId")}/eco/options', headers=headers, data=json.dumps(payload))
+print(response.status_code)
+print(json.dumps(response.json(), indent=4))
+#set memory
+payload={'itemId':itemID,'duration':'P1M','planCode':'ram-4g-sk010','pricingMode':'default','quantity':1}
+response = requests.post(f'{endpoint}1.0/order/cart/{cart.get("cartId")}/eco/options', headers=headers, data=json.dumps(payload))
+print(response.status_code)
+print(json.dumps(response.json(), indent=4))
+#lets checkout boooyaaa
