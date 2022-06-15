@@ -134,7 +134,10 @@ for day in range(4):
             headers['X-Ovh-Signature'] = "$1$" + signature.hexdigest()
             headers['X-Ovh-Timestamp'] = now
             response = requests.post(target, headers=headers, data=json.dumps(payload))
-            print(response.status_code)
-            print(json.dumps(response.json(), indent=4))
-            exit("Done")
+            if response.status_code == 200:
+                print(response.status_code)
+                print(json.dumps(response.json(), indent=4))
+                exit("Done")
+            else:
+                continue
         time.sleep(10)
