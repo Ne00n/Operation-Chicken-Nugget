@@ -1,4 +1,4 @@
-import requests, json, ovh
+import requests, hashlib, json, time, ovh
 
 with open('config.json') as f:
     config = json.load(f)
@@ -18,6 +18,16 @@ print("Welcome", client.get('/me')['firstname'])
 endpoint = "ca.api.ovh.com"
 headers = {'Accept': 'application/json','X-Ovh-Application':config['application_key'],'X-Ovh-Consumer':config['consumer_key'],
 'Content-Type':'application/json;charset=utf-8','Host':endpoint}
+print("Preparing Package")
+#getting current time
+response = requests.get(f'https://{endpoint}/1.0/auth/time', headers=headers)
+if response.status_code == 200:
+    print("Getting Time")
+else:
+    print(response.status_code)
+    print(json.dumps(response.json(), indent=4))
+    exit()
+timeDelta = int(response.text) - int(time.time())
 # creating a new cart
 cart = client.post("/order/cart", ovhSubsidiary="CA", _need_auth=False)
 #assign new cart to current user
@@ -95,10 +105,13 @@ print("Package ready, waiting for stock")
 #todo
 #lets checkout boooyaaa
 payload={'autoPayWithPreferredPaymentMethod':False,'waiveRetractationPeriod':False}
-print(json.dumps(headers, indent=4))
-response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/checkout', headers=headers, data=json.dumps(payload))
+#prepare sig
+target = f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/checkout'
+now = str(int(time.time()) + timeDelta)
+signature = hashlib.sha1()
+signature.update("+".join([config['application_secret'], config['consumer_key'],'POST', target, json.dumps(payload), now]).encode('utf-8'))
+headers['X-Ovh-Signature'] = "$1$" + signature.hexdigest()
+headers['X-Ovh-Timestamp'] = now
+response = requests.post(target, headers=headers, data=json.dumps(payload))
 print(response.status_code)
 print(json.dumps(response.json(), indent=4))
-
-
-client.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/checkout', **payload, ovhSubsidiary="CA", _need_auth=True)
