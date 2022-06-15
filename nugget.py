@@ -66,3 +66,7 @@ response = requests.post(f'{endpoint}1.0/order/cart/{cart.get("cartId")}/eco/opt
 print(response.status_code)
 print(json.dumps(response.json(), indent=4))
 #lets checkout boooyaaa
+payload={'autoPayWithPreferredPaymentMethod':False,'waiveRetractationPeriod':False}
+response = requests.post(f'{endpoint}1.0/order/cart/{cart.get("cartId")}/checkout', headers=headers, data=json.dumps(payload))
+print(response.status_code)
+print(json.dumps(response.json(), indent=4))
