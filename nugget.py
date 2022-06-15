@@ -51,11 +51,11 @@ for day in range(4):
     itemID = response.json()['items'][0]
     print(f'Getting current cart {cart.get("cartId")}')
     #set configurations
-    config = [{'label':'region','value':'europe'},{'label':'dedicated_datacenter','value':'fr'},{'label':'dedicated_os','value':'none_64.en'}]
-    for config in configurations:
-        response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/item/{itemID}/configuration', headers=headers, data=json.dumps(config))
+    configurations = [{'label':'region','value':'europe'},{'label':'dedicated_datacenter','value':'fr'},{'label':'dedicated_os','value':'none_64.en'}]
+    for entry in configurations:
+        response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/item/{itemID}/configuration', headers=headers, data=json.dumps(entry))
         if response.status_code == 200:
-            print(f"Setting {config}")
+            print(f"Setting {entry}")
         else:
             print(response.status_code)
             print(json.dumps(response.json(), indent=4))
@@ -68,7 +68,7 @@ for day in range(4):
     for option in options:
         response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/eco/options', headers=headers, data=json.dumps(option))
         if response.status_code == 200:
-            print(f"Seting {option}")
+            print(f"Setting {option}")
         else:
             print(response.status_code)
             print(json.dumps(response.json(), indent=4))
