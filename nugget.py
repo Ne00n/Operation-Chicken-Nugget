@@ -32,3 +32,21 @@ print(json.dumps(response.json(), indent=4))
 response = requests.get(f'{endpoint}1.0/order/cart/{cart.get("cartId")}')
 print(response.status_code)
 print(json.dumps(response.json(), indent=4))
+#modify item for checkout
+itemID = response.json()['items'][0]
+print(itemID)
+#set region
+payload={'label':'region','value':'europe'}
+response = requests.post(f'{endpoint}1.0/order/cart/{cart.get("cartId")}/item/{itemID}/configuration', headers=headers, data=json.dumps(payload))
+print(response.status_code)
+print(json.dumps(response.json(), indent=4))
+#set datacenter
+payload={'label':'dedicated_datacenter','value':'fr'}
+response = requests.post(f'{endpoint}1.0/order/cart/{cart.get("cartId")}/item/{itemID}/configuration', headers=headers, data=json.dumps(payload))
+print(response.status_code)
+print(json.dumps(response.json(), indent=4))
+#set os
+payload={'label':'dedicated_os','value':'none_64.en'}
+response = requests.post(f'{endpoint}1.0/order/cart/{cart.get("cartId")}/item/{itemID}/configuration', headers=headers, data=json.dumps(payload))
+print(response.status_code)
+print(json.dumps(response.json(), indent=4))
