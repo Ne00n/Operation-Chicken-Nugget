@@ -139,5 +139,6 @@ for day in range(4):
                 print(json.dumps(response.json(), indent=4))
                 exit("Done")
             else:
+                print("Got non 200 response code on checkout, retrying")
                 continue
         time.sleep(10)
