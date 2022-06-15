@@ -125,6 +125,8 @@ for day in range(4):
             continue
         #lets checkout boooyaaa
         if score == 2:
+            #autopay should be set to true if you want automatic delivery, otherwise it will just generate a invoice
+            #best guess, load your ovh account, don't use CC, will add delay
             payload={'autoPayWithPreferredPaymentMethod':False,'waiveRetractationPeriod':False}
             #prepare sig
             target = f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/checkout'
