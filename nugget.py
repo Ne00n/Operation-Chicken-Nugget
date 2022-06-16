@@ -42,9 +42,9 @@ for day in range(4):
     payload={'duration':'P1M','planCode':'22sk010','pricingMode':'default','quantity':1}
     response = requests.post(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}/eco', headers=headers, data=json.dumps(payload))
     if response.status_code != 200:
-    print(response.status_code)
-    print(json.dumps(response.json(), indent=4))
-    exit()
+        print(response.status_code)
+        print(json.dumps(response.json(), indent=4))
+        exit()
     #getting current cart
     response = requests.get(f'https://{endpoint}/1.0/order/cart/{cart.get("cartId")}')
     if response.status_code != 200:
