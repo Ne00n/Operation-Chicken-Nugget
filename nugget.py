@@ -1,4 +1,5 @@
 import requests, hashlib, json, time, ovh
+from datetime import datetime
 from random import randint
 
 with open('config.json') as f:
@@ -80,7 +81,8 @@ for day in range(4):
     print("Package ready, waiting for stock")
     #the order expires in about 3 days, we create a new one after 2 days
     for check in range(17280):
-        print(f"Run {check+1}")
+        now = datetime.now()
+        print(f"Run {check+1} {now.strftime("%H:%M:%S")}")
         #wait for stock
         response = requests.get('https://us.ovh.com/engine/apiv6/dedicated/server/datacenter/availabilities?excludeDatacenters=false&planCode=22sk010&server=22sk010')
         if response.status_code == 200:
