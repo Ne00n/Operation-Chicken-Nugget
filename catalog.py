@@ -12,7 +12,6 @@ for plan in catalog['plans']:
 
 newlist = dict(sorted(catalogSorted.items(), key=lambda item: item[0]))
 
-#print(catalogSorted)
 for price,offer in newlist.items():
     if "product" in offer:
         print(price,offer["invoiceName"])

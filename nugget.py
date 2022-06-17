@@ -89,10 +89,10 @@ for day in range(4):
             for datacenter in stock[0]['datacenters']:
                 if datacenter['datacenter'] == "rbx":
                     print(f'RBX {datacenter["availability"]}')
-                    if datacenter['availability'] != "unavailable": score+1
+                    if datacenter['availability'] != "unavailable": score = score +1
                 if datacenter['datacenter'] == "gra":
                     print(f'GRA {datacenter["availability"]}')
-                    if datacenter['availability'] == "unavailable": score+1
+                    if datacenter['availability'] == "unavailable": score = score +1
         else:
             time.sleep(randint(5,10))
             continue
