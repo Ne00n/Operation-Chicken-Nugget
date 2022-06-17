@@ -82,7 +82,7 @@ for day in range(4):
     #the order expires in about 3 days, we create a new one after 2 days
     for check in range(17280):
         now = datetime.now()
-        print(f"Run {check+1} {now.strftime("%H:%M:%S")}")
+        print(f'Run {check+1} {now.strftime("%H:%M:%S")}')
         #wait for stock
         response = requests.get('https://us.ovh.com/engine/apiv6/dedicated/server/datacenter/availabilities?excludeDatacenters=false&planCode=22sk010&server=22sk010')
         if response.status_code == 200:
