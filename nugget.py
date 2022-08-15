@@ -33,7 +33,7 @@ timeDelta = int(response.text) - int(time.time())
 for day in range(4):
     print(f'Day {day}')
     # creating a new cart
-    cart = client.post("/order/cart", ovhSubsidiary="CA", _need_auth=False)
+    cart = client.post("/order/cart", ovhSubsidiary=config['ovhSubsidiary'], _need_auth=False)
     #assign new cart to current user
     client.post("/order/cart/{0}/assign".format(cart.get("cartId")))
     #put ks1 into cart
