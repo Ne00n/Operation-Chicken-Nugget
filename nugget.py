@@ -18,10 +18,10 @@ client = ovh.Client(
 print("Welcome", client.get('/me')['firstname'])
 
 headers = {'Accept': 'application/json','X-Ovh-Application':config['application_key'],'X-Ovh-Consumer':config['consumer_key'],
-'Content-Type':'application/json;charset=utf-8','Host':config['endpoint']}
+'Content-Type':'application/json;charset=utf-8','Host':config['endpointAPI']}
 print("Preparing Package")
 #getting current time
-response = requests.get(f"https://{config['endpoint']}/1.0/auth/time", headers=headers)
+response = requests.get(f"https://{config['endpointAPI']}/1.0/auth/time", headers=headers)
 if response.status_code == 200:
     print("Getting Time")
 else:
@@ -40,13 +40,13 @@ for day in range(4):
     #result = client.post(f'/order/cart/{cart.get("cartId")}/eco',{"duration":"P1M","planCode":"22sk010","pricingMode":"default","quantity":1})
     #apparently this shit sends malformed json whatever baguette
     payload={'duration':'P1M','planCode':'22sk010','pricingMode':'default','quantity':1}
-    response = requests.post(f"https://{config['endpoint']}/1.0/order/cart/{cart.get('cartId')}/eco", headers=headers, data=json.dumps(payload))
+    response = requests.post(f"https://{config['endpointAPI']}/1.0/order/cart/{cart.get('cartId')}/eco", headers=headers, data=json.dumps(payload))
     if response.status_code != 200:
         print(response.status_code)
         print(json.dumps(response.json(), indent=4))
         exit()
     #getting current cart
-    response = requests.get(f"https://{config['endpoint']}/1.0/order/cart/{cart.get('cartId')}")
+    response = requests.get(f"https://{config['endpointAPI']}/1.0/order/cart/{cart.get('cartId')}")
     if response.status_code != 200:
         print(response.status_code)
         print(json.dumps(response.json(), indent=4))
@@ -55,9 +55,9 @@ for day in range(4):
     itemID = response.json()['items'][0]
     print(f'Getting current cart {cart.get("cartId")}')
     #set configurations
-    configurations = [{'label':'region','value':'europe'},{'label':'dedicated_datacenter','value':'fr'},{'label':'dedicated_os','value':'none_64.en'}]
+    configurations = [{'label':'region','value':config['region']},{'label':'dedicated_datacenter','value':config['dedicated_datacenter']},{'label':'dedicated_os','value':'none_64.en'}]
     for entry in configurations:
-        response = requests.post(f"https://{config['endpoint']}/1.0/order/cart/{cart.get('cartId')}/item/{itemID}/configuration", headers=headers, data=json.dumps(entry))
+        response = requests.post(f"https://{config['endpointAPI']}/1.0/order/cart/{cart.get('cartId')}/item/{itemID}/configuration", headers=headers, data=json.dumps(entry))
         if response.status_code == 200:
             print(f"Setting {entry}")
         else:
@@ -70,7 +70,7 @@ for day in range(4):
             {'itemId':itemID,'duration':'P1M','planCode':'ram-4g-sk010','pricingMode':'default','quantity':1}
     ]
     for option in options:
-        response = requests.post(f"https://{config['endpoint']}/1.0/order/cart/{cart.get('cartId')}/eco/options", headers=headers, data=json.dumps(option))
+        response = requests.post(f"https://{config['endpointAPI']}/1.0/order/cart/{cart.get('cartId')}/eco/options", headers=headers, data=json.dumps(option))
         if response.status_code == 200:
             print(f"Setting {option}")
         else:
@@ -104,7 +104,7 @@ for day in range(4):
             #autopay should be set to true if you want automatic delivery, otherwise it will just generate a invoice
             payload={'autoPayWithPreferredPaymentMethod':False,'waiveRetractationPeriod':False}
             #prepare sig
-            target = f"https://{config['endpoint']}/1.0/order/cart/{cart.get('cartId')}/checkout"
+            target = f"https://{config['endpointAPI']}/1.0/order/cart/{cart.get('cartId')}/checkout"
             now = str(int(time.time()) + timeDelta)
             signature = hashlib.sha1()
             signature.update("+".join([config['application_secret'], config['consumer_key'],'POST', target, json.dumps(payload), now]).encode('utf-8'))

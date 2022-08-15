@@ -3,5 +3,7 @@
     "ovhSubsidiary":"",
     "application_key":"",
     "application_secret":"",
+    "dedicated_datacenter":"",
+    "region":"",
     "consumer_key":""
 }
