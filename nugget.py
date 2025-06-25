@@ -86,7 +86,7 @@ if len(sys.argv) == 1:
             break
 
     print("Loading availability...")
-    availabilityRaw = call(f'{selectedEndpoint["availability"]}?excludeDatacenters=false&planCode={planConfig["planCode"]}&server={planConfig["planCode"]}')
+    availabilityRaw = call(f'{selectedEndpoint["availability"]}?excludeDatacenters=false&planCode={planConfig["planCode"]}')
     availability = availabilityRaw.json()
     print("Available in the following datacenters")
     if not availability:
