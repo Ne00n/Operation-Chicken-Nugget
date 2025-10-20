@@ -290,7 +290,7 @@ while True:
 
         # Fetch stock
         try:
-            response = requests.get(f'{selectedEndpoint["availability"]}?excludeDatacenters=false&planCode={planConfig["planCode"]}&server={planConfig["planCode"]}')
+            response = requests.get(f'{selectedEndpoint["availability"]}?excludeDatacenters=false&planCode={planConfig["planCode"]}')
         except Exception as e:
             print(f"Failed to fetch stock got error '{e}' retrying...")
             time.sleep(2)
