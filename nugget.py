@@ -1,4 +1,4 @@
-import requests, hashlib, json, time, ovh, sys, os
+import requests, hashlib, copy, json, time, ovh, sys, os
 from datetime import datetime
 from random import randint
 
@@ -57,6 +57,7 @@ def datacenterToRegion(availableDataCenter):
 
 guess = True if len(sys.argv) == 2 and "guess" in sys.argv[1] else False
 while True:
+    planTemp = copy.deepcopy(planConfig)
     if len(sys.argv) == 1 or guess:
         print(f"Loading catalog from {selectedEndpoint['catalog']}")
         status, catalogRaw = call(selectedEndpoint['catalog'])
@@ -91,7 +92,7 @@ while True:
 
         for offerIndex, (planCode,data) in enumerate(catalogSorted.items()):
             if "product" in data['plan'] and offerIndex == int(lookup):
-                planConfig['planCode'] = planCode
+                planTemp['planCode'] = planCode
                 for addon in data['plan']['addonFamilies']:
                     if addon['mandatory'] != True: continue
                     found = False
@@ -111,28 +112,29 @@ while True:
                         print("Please select configuration")
                         selected = input()
                     for index, option in enumerate(addon['addons']):
-                        if int(selected) == index: planConfig[addon['name']] = option
+                        if int(selected) == index: planTemp[addon['name']] = option
                 break
 
         print("Loading availability...")
-        status, availabilityRaw = call(f'{selectedEndpoint["availability"]}?excludeDatacenters=false&planCode={planConfig["planCode"]}')
+        status, availabilityRaw = call(f'{selectedEndpoint["availability"]}?excludeDatacenters=false&planCode={planTemp["planCode"]}')
         if not status: continue
         availability = availabilityRaw.json()
-        if not "datacenter" in planConfig:
+        if not "datacenter" in planTemp:
             print("Available in the following datacenters")
             if not availability:
                 print(f"Failed to fetch availability, please enter the desired datacenters manualy.")
-                planConfig['datacenter'] = input()
+                planTemp['datacenter'] = input()
             else:
                 for index, datacenter in enumerate(availability[0]['datacenters']):
                     print(datacenter['datacenter'])
                 print("Please enter the desired datacenter e.g waw you can also enter multiple like fra,gra,sbg")
                 print("Keep in mind, they have to be in the same region.")
-                planConfig['datacenter'] = input()
+                planTemp['datacenter'] = input()
 
-            planConfig['region'] = datacenterToRegion(planConfig['datacenter'])
-            planConfig['endpoint'] = selectedEndpoint['endpointAPI']
+            planTemp['region'] = datacenterToRegion(planTemp['datacenter'])
+            planTemp['endpoint'] = selectedEndpoint['endpointAPI']
     print(f"Your selected config")
+    planConfig = copy.deepcopy(planTemp)
     print(planConfig)
     filename = f"{path}/plans/{planConfig['planCode']}-{planConfig['memory']}-{planConfig['datacenter']}.json"
     with open(filename, 'w') as f: json.dump(planConfig, f, indent=4)
