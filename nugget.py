@@ -55,79 +55,87 @@ def datacenterToRegion(availableDataCenter):
         return "europe"
 
 guess = True if len(sys.argv) == 2 and "guess" in sys.argv[1] else False
-if len(sys.argv) == 1 or guess:
-    print(f"Loading catalog from {selectedEndpoint['catalog']}")
-    catalogRaw = call(selectedEndpoint['catalog'])
-    catalog = catalogRaw.json()
-    catalogUnsorted = {}
-    for plan in catalog['plans']:
-        for price in plan['pricings']:
-            if "installation" in price['capacities']: continue
-            if price['interval'] != 1: continue
-            catalogUnsorted[plan['planCode']] = {"price":int(price['price']),"plan":plan}
+while True:
+    if len(sys.argv) == 1 or guess:
+        print(f"Loading catalog from {selectedEndpoint['catalog']}")
+        catalogRaw = call(selectedEndpoint['catalog'])
+        catalog = catalogRaw.json()
+        catalogUnsorted = {}
+        for plan in catalog['plans']:
+            for price in plan['pricings']:
+                if "installation" in price['capacities']: continue
+                if price['interval'] != 1: continue
+                catalogUnsorted[plan['planCode']] = {"price":int(price['price']),"plan":plan}
 
-    catalogSorted = dict(sorted(catalogUnsorted.items(), key=lambda item: item[1]["price"]))
+        catalogSorted = dict(sorted(catalogUnsorted.items(), key=lambda item: item[1]["price"]))
 
-    found = False
-    for index, (planCode,data) in enumerate(catalogSorted.items()):
-        if guess and planConfig['planCode'] == planCode or guess and planConfig['planCode'] in planCode: 
-            found = True
-            break
-        if not "product" in data['plan']: continue
-        if not guess: print(index, data['plan']['invoiceName'])
-    
-    if guess and not found:
-        exit("planCode not found...")
-    elif guess and found:
-        lookup = index
-    else:
-        print("What plan do you want to buy? e.g 2 for KS-LE-B")
-        lookup = input()
-
-    for offerIndex, (planCode,data) in enumerate(catalogSorted.items()):
-        if "product" in data['plan'] and offerIndex == int(lookup):
-            planConfig['planCode'] = planCode
-            for addon in data['plan']['addonFamilies']:
-                if addon['mandatory'] != True: continue
-                found = False
-                for index, option in enumerate(addon['addons']): 
-                    if guess and addon['name'] in planConfig and planConfig[addon['name']] in option:
-                        found = True
-                        break
-                    print(index, option)
-                
-                if guess and found:
-                    selected = index
-                else:
-                    print("Please select configuration")
-                    selected = input()
-                for index, option in enumerate(addon['addons']):
-                    if int(selected) == index: planConfig[addon['name']] = option
-            break
-
-    print("Loading availability...")
-    availabilityRaw = call(f'{selectedEndpoint["availability"]}?excludeDatacenters=false&planCode={planConfig["planCode"]}')
-    availability = availabilityRaw.json()
-    if not "datacenter" in planConfig:
-        print("Available in the following datacenters")
-        if not availability:
-            print(f"Failed to fetch availability, please enter the desired datacenters manualy.")
-            planConfig['datacenter'] = input()
+        found = False
+        for index, (planCode,data) in enumerate(catalogSorted.items()):
+            if guess and planConfig['planCode'] == planCode or guess and planConfig['planCode'] in planCode: 
+                found = True
+                break
+            if not "product" in data['plan']: continue
+            if not guess: print(index, data['plan']['invoiceName'])
+        
+        if guess and not found:
+            print("planCode not found...")
+            time.sleep(30)
+            continue
+        elif guess and found:
+            lookup = index
         else:
-            for index, datacenter in enumerate(availability[0]['datacenters']):
-                print(datacenter['datacenter'])
-            print("Please enter the desired datacenter e.g waw you can also enter multiple like fra,gra,sbg")
-            print("Keep in mind, they have to be in the same region.")
-            planConfig['datacenter'] = input()
+            print("What plan do you want to buy? e.g 2 for KS-LE-B")
+            lookup = input()
 
-        planConfig['region'] = datacenterToRegion(planConfig['datacenter'])
-        planConfig['endpoint'] = selectedEndpoint['endpointAPI']
-print(f"Your selected config")
-print(planConfig)
-filename = f"{path}/plans/{planConfig['planCode']}-{planConfig['memory']}-{planConfig['datacenter']}.json"
-with open(filename, 'w') as f: json.dump(planConfig, f, indent=4)
-print(f"Saved as {filename}")
-time.sleep(2)
+        for offerIndex, (planCode,data) in enumerate(catalogSorted.items()):
+            if "product" in data['plan'] and offerIndex == int(lookup):
+                planConfig['planCode'] = planCode
+                for addon in data['plan']['addonFamilies']:
+                    if addon['mandatory'] != True: continue
+                    found = False
+                    for index, option in enumerate(addon['addons']): 
+                        if guess and addon['name'] in planConfig and planConfig[addon['name']] in option:
+                            found = True
+                            break
+                        print(index, option)
+                    
+                    if guess and found:
+                        selected = index
+                    elif guess and not found:
+                        print("addon not found...")
+                        time.sleep(10)
+                        continue
+                    else:
+                        print("Please select configuration")
+                        selected = input()
+                    for index, option in enumerate(addon['addons']):
+                        if int(selected) == index: planConfig[addon['name']] = option
+                break
+
+        print("Loading availability...")
+        availabilityRaw = call(f'{selectedEndpoint["availability"]}?excludeDatacenters=false&planCode={planConfig["planCode"]}')
+        availability = availabilityRaw.json()
+        if not "datacenter" in planConfig:
+            print("Available in the following datacenters")
+            if not availability:
+                print(f"Failed to fetch availability, please enter the desired datacenters manualy.")
+                planConfig['datacenter'] = input()
+            else:
+                for index, datacenter in enumerate(availability[0]['datacenters']):
+                    print(datacenter['datacenter'])
+                print("Please enter the desired datacenter e.g waw you can also enter multiple like fra,gra,sbg")
+                print("Keep in mind, they have to be in the same region.")
+                planConfig['datacenter'] = input()
+
+            planConfig['region'] = datacenterToRegion(planConfig['datacenter'])
+            planConfig['endpoint'] = selectedEndpoint['endpointAPI']
+    print(f"Your selected config")
+    print(planConfig)
+    filename = f"{path}/plans/{planConfig['planCode']}-{planConfig['memory']}-{planConfig['datacenter']}.json"
+    with open(filename, 'w') as f: json.dump(planConfig, f, indent=4)
+    print(f"Saved as {filename}")
+    time.sleep(2)
+    break
 
 # Instantiate. Visit https://api.ovh.com/createToken/?GET=/me
 # to get your credentials
