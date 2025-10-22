@@ -78,7 +78,7 @@ while True:
             if not guess: print(index, data['plan']['invoiceName'])
         
         if guess and not found:
-            print("planCode not found...")
+            print(f"planCode {planConfig['planCode']} not found...")
             time.sleep(60)
             continue
         elif guess and found:
