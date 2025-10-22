@@ -79,7 +79,7 @@ while True:
         
         if guess and not found:
             print("planCode not found...")
-            time.sleep(30)
+            time.sleep(60)
             continue
         elif guess and found:
             lookup = index
@@ -103,7 +103,7 @@ while True:
                         selected = index
                     elif guess and not found:
                         print("addon not found...")
-                        time.sleep(10)
+                        time.sleep(30)
                         continue
                     else:
                         print("Please select configuration")
