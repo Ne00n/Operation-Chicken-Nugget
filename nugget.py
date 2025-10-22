@@ -54,7 +54,8 @@ def datacenterToRegion(availableDataCenter):
     else:
         return "europe"
 
-if len(sys.argv) == 1:
+guess = True if len(sys.argv) == 2 and "guess" in sys.argv[1] else False
+if len(sys.argv) == 1 or guess:
     print(f"Loading catalog from {selectedEndpoint['catalog']}")
     catalogRaw = call(selectedEndpoint['catalog'])
     catalog = catalogRaw.json()
@@ -67,20 +68,39 @@ if len(sys.argv) == 1:
 
     catalogSorted = dict(sorted(catalogUnsorted.items(), key=lambda item: item[1]["price"]))
 
+    found = False
     for index, (planCode,data) in enumerate(catalogSorted.items()):
+        if guess and planConfig['planCode'] == planCode or guess and planConfig['planCode'] in planCode: 
+            found = True
+            break
         if not "product" in data['plan']: continue
-        print(index, data['plan']['invoiceName'])
-    print("What plan do you want to buy? e.g 2 for KS-LE-B")
+        if not guess: print(index, data['plan']['invoiceName'])
+    
+    if guess and not found:
+        exit("planCode not found...")
+    elif guess and found:
+        lookup = index
+    else:
+        print("What plan do you want to buy? e.g 2 for KS-LE-B")
+        lookup = input()
 
-    lookup = input()
     for offerIndex, (planCode,data) in enumerate(catalogSorted.items()):
         if "product" in data['plan'] and offerIndex == int(lookup):
             planConfig['planCode'] = planCode
             for addon in data['plan']['addonFamilies']:
                 if addon['mandatory'] != True: continue
-                for index, option in enumerate(addon['addons']): print(index, option)
-                print("Please select configuration")
-                selected = input()
+                found = False
+                for index, option in enumerate(addon['addons']): 
+                    if guess and addon['name'] in planConfig and planConfig[addon['name']] in option:
+                        found = True
+                        break
+                    print(index, option)
+                
+                if guess and found:
+                    selected = index
+                else:
+                    print("Please select configuration")
+                    selected = input()
                 for index, option in enumerate(addon['addons']):
                     if int(selected) == index: planConfig[addon['name']] = option
             break
@@ -88,19 +108,20 @@ if len(sys.argv) == 1:
     print("Loading availability...")
     availabilityRaw = call(f'{selectedEndpoint["availability"]}?excludeDatacenters=false&planCode={planConfig["planCode"]}')
     availability = availabilityRaw.json()
-    print("Available in the following datacenters")
-    if not availability:
-        print(f"Failed to fetch availability, please enter the desired datacenters manualy.")
-        planConfig['datacenter'] = input()
-    else:
-        for index, datacenter in enumerate(availability[0]['datacenters']):
-            print(datacenter['datacenter'])
-        print("Please enter the desired datacenter e.g waw you can also enter multiple like fra,gra,sbg")
-        print("Keep in mind, they have to be in the same region.")
-        planConfig['datacenter'] = input()
+    if not "datacenter" in planConfig:
+        print("Available in the following datacenters")
+        if not availability:
+            print(f"Failed to fetch availability, please enter the desired datacenters manualy.")
+            planConfig['datacenter'] = input()
+        else:
+            for index, datacenter in enumerate(availability[0]['datacenters']):
+                print(datacenter['datacenter'])
+            print("Please enter the desired datacenter e.g waw you can also enter multiple like fra,gra,sbg")
+            print("Keep in mind, they have to be in the same region.")
+            planConfig['datacenter'] = input()
 
-    planConfig['region'] = datacenterToRegion(planConfig['datacenter'])
-    planConfig['endpoint'] = selectedEndpoint['endpointAPI']
+        planConfig['region'] = datacenterToRegion(planConfig['datacenter'])
+        planConfig['endpoint'] = selectedEndpoint['endpointAPI']
 print(f"Your selected config")
 print(planConfig)
 filename = f"{path}/plans/{planConfig['planCode']}-{planConfig['memory']}-{planConfig['datacenter']}.json"
