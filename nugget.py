@@ -35,13 +35,14 @@ def call(url,payload=None,runs=10):
                 response = requests.post(url, headers=headers, data=json.dumps(payload))
             else:
                 response = requests.get(url, headers=headers)
-            if response.status_code == 200: return response
+            if response.status_code == 200: return True,response
             print(f"Got {response.status_code} for {url} retrying...")
             print(json.dumps(response.json(), indent=4))
         except Exception as e:
             print(f"Failed to fetch {url} got error '{e}' retrying...")
         time.sleep(5)
-    exit(f"Unable to fetch {url}")
+    print(f"Unable to fetch {url}")
+    return False,None
 
 headers = {'Accept': 'application/json','X-Ovh-Application':config['application_key'],'X-Ovh-Consumer':config['consumer_key'],
 'Content-Type':'application/json;charset=utf-8','Host':selectedEndpoint['endpointAPI']}
@@ -58,7 +59,8 @@ guess = True if len(sys.argv) == 2 and "guess" in sys.argv[1] else False
 while True:
     if len(sys.argv) == 1 or guess:
         print(f"Loading catalog from {selectedEndpoint['catalog']}")
-        catalogRaw = call(selectedEndpoint['catalog'])
+        status, catalogRaw = call(selectedEndpoint['catalog'])
+        if not status: continue
         catalog = catalogRaw.json()
         catalogUnsorted = {}
         for plan in catalog['plans']:
@@ -113,7 +115,8 @@ while True:
                 break
 
         print("Loading availability...")
-        availabilityRaw = call(f'{selectedEndpoint["availability"]}?excludeDatacenters=false&planCode={planConfig["planCode"]}')
+        status, availabilityRaw = call(f'{selectedEndpoint["availability"]}?excludeDatacenters=false&planCode={planConfig["planCode"]}')
+        if not status: continue
         availability = availabilityRaw.json()
         if not "datacenter" in planConfig:
             print("Available in the following datacenters")
@@ -155,7 +158,8 @@ while True:
     print("Preparing Package")
     #getting current time
     print("Getting Time")
-    response = call(f"https://{selectedEndpoint['endpointAPI']}/1.0/auth/time")
+    status, response = call(f"https://{selectedEndpoint['endpointAPI']}/1.0/auth/time")
+    if not status: continue
     timeDelta = int(response.text) - int(time.time())
     # creating a new cart
     cart = client.post("/order/cart", ovhSubsidiary=config['ovhSubsidiary'], _need_auth=False)
@@ -165,9 +169,11 @@ while True:
     #result = client.post(f'/order/cart/{cart.get("cartId")}/eco',{"duration":"P1M","planCode":"22sk010","pricingMode":"default","quantity":1})
     #apparently this shit sends malformed json whatever baguette
     payload = {'duration':'P1M','planCode':planConfig['planCode'],'pricingMode':'default','quantity':1}
-    call(f"https://{selectedEndpoint['endpointAPI']}/1.0/order/cart/{cart.get('cartId')}/eco", payload)
+    status, response = call(f"https://{selectedEndpoint['endpointAPI']}/1.0/order/cart/{cart.get('cartId')}/eco", payload)
+    if not status: continue
     #getting current cart
-    response = call(f"https://{selectedEndpoint['endpointAPI']}/1.0/order/cart/{cart.get('cartId')}")
+    status, response = call(f"https://{selectedEndpoint['endpointAPI']}/1.0/order/cart/{cart.get('cartId')}")
+    if not status: continue
     #modify item for checkout
     itemID = response.json()['items'][0]
     print(f'Getting current cart {cart.get("cartId")}')
@@ -175,7 +181,8 @@ while True:
     configurations = [{'label':'region','value':planConfig['region']},{'label':'dedicated_datacenter','value':planConfig['datacenter']},{'label':'dedicated_os','value':'none_64.en'}]
     for entry in configurations:
         print(f"Setting {entry}")
-        call(f"https://{selectedEndpoint['endpointAPI']}/1.0/order/cart/{cart.get('cartId')}/item/{itemID}/configuration",entry)
+        status, response = call(f"https://{selectedEndpoint['endpointAPI']}/1.0/order/cart/{cart.get('cartId')}/item/{itemID}/configuration",entry)
+        if not status: continue
     #set options
     options = [{'itemId':itemID,'duration':'P1M','planCode':planConfig['bandwidth'],'pricingMode':'default','quantity':1},
             {'itemId':itemID,'duration':'P1M','planCode':planConfig['storage'],'pricingMode':'default','quantity':1},
@@ -183,7 +190,8 @@ while True:
     ]
     for option in options:
         print(f"Setting {option}")
-        call(f"https://{selectedEndpoint['endpointAPI']}/1.0/order/cart/{cart.get('cartId')}/eco/options", option)
+        status, response = call(f"https://{selectedEndpoint['endpointAPI']}/1.0/order/cart/{cart.get('cartId')}/eco/options", option)
+        if not status: continue
     print("Package ready, waiting for stock")
     #the order expires after about 1 day
     for check in range(70000):
