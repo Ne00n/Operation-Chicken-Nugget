@@ -96,7 +96,7 @@ while True:
                     if addon['mandatory'] != True: continue
                     found = False
                     for index, option in enumerate(addon['addons']): 
-                        if guess and addon['name'] in planConfig and planConfig[addon['name']] in option:
+                        if guess and addon['name'] in planConfig and (planConfig[addon['name']] in option or planConfig[addon['name']] == option):
                             found = True
                             break
                         print(index, option)
