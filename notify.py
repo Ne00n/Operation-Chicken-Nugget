@@ -1,8 +1,8 @@
 import requests, json, ovh, os
 
+path = os.path.dirname(os.path.realpath(__file__))
 with open(f'{path}/config.json') as f: config = json.load(f)
 with open(f'{path}/endpoints.json') as f: endpoints = json.load(f)
-path = os.path.dirname(os.path.realpath(__file__))
 if os.path.isfile(f"{path}/history.json"):
     with open(f'{path}/history.json') as f: history = json.load(f)
 else:
