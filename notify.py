@@ -1,4 +1,4 @@
-import requests, json, ovh, os
+import requests, json, time, ovh, os
 
 path = os.path.dirname(os.path.realpath(__file__))
 with open(f'{path}/config.json') as f: config = json.load(f)
@@ -29,6 +29,12 @@ client = ovh.Client(
 result = client.get("/dedicated/server")
 for dedi in result:
     if not dedi in history:
-        resp = requests.post(config['gotify'], json={"message": dedi,"priority": 10,"title": "New baguette detected"})
+        for run in range(3):
+            try:
+                requests.post(config['gotify'], json={"message": dedi,"priority": 10,"title": "New baguette detected"})
+                break
+            except Exception as e:
+                print(f"Failed to post {config['gotify']} got error '{e}' retrying...")
+                time.sleep(5)
 
 with open(f"{path}/history.json", 'w') as f: json.dump(result, f, indent=4)
