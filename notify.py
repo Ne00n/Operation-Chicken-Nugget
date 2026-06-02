@@ -8,7 +8,16 @@ if os.path.isfile(f"{path}/history.json"):
 else:
     history = {}
 
-selectedEndpoint = endpoints["ca.api.ovh.com"]
+if not "gotify" in config:
+    print("Please set the gotify url in the config") 
+    config['gotify'] = ""
+if not "endpoint" in config:
+    print("Please set the endpoint in config.") 
+    config['endpoint'] = ""
+with open(f"{path}/config.json", 'w') as f: json.dump(config, f, indent=4)
+if not config['endpoint'] or not config['gotify']: exit()
+
+selectedEndpoint = config['endpoint']
 
 client = ovh.Client(
     endpoint=selectedEndpoint['endpoint'],
