@@ -243,6 +243,8 @@ while True:
                 if response.status_code == 200:
                     print(response.status_code)
                     print(json.dumps(response.json(), indent=4))
+                    if "gotify" in config:
+                        requests.post(config['gotify'], json={"message": json.dumps(response.json(), indent=4),"priority": 5,"title": f"New Invoice generated"})
                     exit("Done")
                 else:
                     print("Got non 200 response code on checkout, retrying")
