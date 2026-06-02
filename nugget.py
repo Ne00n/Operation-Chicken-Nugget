@@ -251,7 +251,7 @@ while True:
                     print(json.dumps(response.json(), indent=4))
                     retry += 1
                     if retry > 15: exit()
-                    if retry % 4 == 0 and config['anyDatacenter']:
+                    if retry % 4 == 0 and config['anyDatacenter'] or availableDataCenter in planConfig['datacenter']:
                         print(f"Switching Region to {datacenterToRegion(availableDataCenter)} and datacenter to {availableDataCenter}") 
                         planConfig['datacenter'] = availableDataCenter
                         planConfig['region'] = datacenterToRegion(availableDataCenter)
