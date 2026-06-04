@@ -138,6 +138,8 @@ while True:
 
             planTemp['region'] = datacenterToRegion(planTemp['datacenter'])
             planTemp['endpoint'] = selectedEndpoint['endpointAPI']
+    invoices = input("How many invoices: ")
+    planTemp['invoices'] = invoices
     print(f"Your selected config")
     planConfig = copy.deepcopy(planTemp)
     print(planConfig)
