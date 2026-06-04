@@ -161,7 +161,7 @@ client = ovh.Client(
 # Print nice welcome message
 print("Welcome", client.get('/me')['firstname'])
 availableDataCenter = "bhs"
-retry = 0
+retry, invoices = 0, 0
 
 while True:
     print("Preparing Package")
@@ -252,7 +252,8 @@ while True:
                     print(json.dumps(response.json(), indent=4))
                     if "gotify" in config:
                         requests.post(config['gotify'], json={"message": json.dumps(response.json(), indent=4),"priority": 5,"title": f"New Invoice generated"})
-                    exit("Done")
+                    invoices += 1
+                    if planConfig['invoices'] >= invoices: exit("Done")
                 else:
                     print("Got non 200 response code on checkout, retrying")
                     print(json.dumps(response.json(), indent=4))
