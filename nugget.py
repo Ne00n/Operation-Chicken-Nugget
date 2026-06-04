@@ -160,6 +160,7 @@ client = ovh.Client(
 
 # Print nice welcome message
 print("Welcome", client.get('/me')['firstname'])
+if not 'invoices' in planConfig: planConfig['invoices'] = 1
 availableDataCenter = "bhs"
 retry, invoices = 0, 0
 
