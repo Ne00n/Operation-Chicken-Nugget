@@ -11,14 +11,19 @@ if not "anyDatacenter" in config: exit("anyDatacenter missing in config.")
 
 if len(sys.argv) == 1:
     planConfig = {}
-    print("Please select the endpoint for the catalog")
-    for index, option in enumerate(endpoints): print(index, option)
-    selected = input("Endpoint: ")
-    for index, option in enumerate(endpoints):
-        if int(selected) == index: 
-            selectedEndpoint = endpoints[option]
-            selectedEndpoint['endpointAPI'] = option
-            break
+    if "endpoint" in config:
+        print("Using defined endpoint from config")
+        selectedEndpoint = endpoints[config['endpoint']]
+        selectedEndpoint['endpointAPI'] = config['endpoint']
+    else:
+        print("Please select the endpoint for the catalog")
+        for index, option in enumerate(endpoints): print(index, option)
+        selected = input("Endpoint: ")
+        for index, option in enumerate(endpoints):
+            if int(selected) == index: 
+                selectedEndpoint = endpoints[option]
+                selectedEndpoint['endpointAPI'] = option
+                break
 else:
     if os.path.isfile(f"{path}/plans/{sys.argv[1]}"):
         print(f"Loading {sys.argv[1]}")
